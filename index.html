@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BancoSol - Encuesta Clientes Post Desembolso</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bsol: {
+                            purpleDark: '#3D1053',
+                            purple: '#5C1D82',
+                            purpleRed: '#8C1D78',
+                            orange: '#FF5900',
+                            orangeLight: '#FF7A00',
+                            bg: '#F8F9FA'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Gradient & Smooth Transitions */
+        .bg-bancosol-grad {
+            background: linear-gradient(135deg, #3D1053 0%, #5C1D82 40%, #8C1D78 70%, #FF5900 100%);
+        }
+        .text-bancosol-grad {
+            background: linear-gradient(135deg, #5C1D82 0%, #8C1D78 50%, #FF5900 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-grad {
+            background: linear-gradient(90deg, #5C1D82 0%, #8C1D78 60%, #FF5900 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-grad:hover {
+            opacity: 0.95;
+            box-shadow: 0 10px 20px -5px rgba(255, 89, 0, 0.4);
+            transform: translateY(-1px);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        /* NPS Rating Button Styling */
+        .nps-btn {
+            transition: all 0.2s ease;
+        }
+        .nps-btn.detractor:hover, .nps-btn.detractor.selected {
+            background-color: #EF4444;
+            color: white;
+            border-color: #EF4444;
+        }
+        .nps-btn.passive:hover, .nps-btn.passive.selected {
+            background-color: #F59E0B;
+            color: white;
+            border-color: #F59E0B;
+        }
+        .nps-btn.promoter:hover, .nps-btn.promoter.selected {
+            background-color: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800 flex flex-col">
+
+    <!-- HEADER / APP BANNER -->
+    <header class="bg-bancosol-grad text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+            <!-- Logo + Title -->
+            <div class="flex items-center space-x-3">
+                <!-- SVG Stylized BancoSol Logo Replaced with Official PNG -->
+                <div class="bg-white p-2 rounded-xl shadow-md flex items-center justify-center h-16 w-16">
+                    <img src="BANCOSOL-PRINCIPAL-LOGO-CMYK2 (1).png" alt="BancoSol Logo" class="max-h-full max-w-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold tracking-tight">BancoSol</h1>
+                    <p class="text-xs text-orange-200 font-medium">Juntos crecemos | Sistema de Encuestas Telefónicas</p>
+                </div>
+            </div>
+
+            <!-- Agent Quick Data Bar -->
+            <div class="flex items-center bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20 text-xs md:text-sm">
+                <i class="fa-solid fa-headset mr-2 text-orange-400"></i>
+                <span id="headerAgentName" class="font-semibold text-white">Operador: No asignado</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+        <!-- STEP PROGRESS INDICATOR -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center max-w-2xl mx-auto relative">
+                <!-- Background Line -->
+                <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-300 -translate-y-1/2 z-0"></div>
+                <div id="progressLine" class="absolute top-1/2 left-0 h-1 bg-bancosol-grad -translate-y-1/2 z-0 transition-all duration-500" style="width: 0%;"></div>
+
+                <!-- Step 1 Circle -->
+                <div id="stepCircle1" class="relative z-10 flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-bsol-purple text-white flex items-center justify-center font-bold shadow-md transition-all">
+                        1
+                    </div>
+                    <span class="text-xs font-semibold mt-1 text-bsol-purple">Inicio & Datos</span>
+                </div>
+
+                <!-- Step 2 Circle -->
+                <div id="stepCircle2" class="relative z-10 flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold shadow-md transition-all">
+                        2
+                    </div>
+                    <span class="text-xs font-medium mt-1 text-gray-500">Cuestionario</span>
+                </div>
+
+                <!-- Step 3 Circle -->
+                <div id="stepCircle3" class="relative z-10 flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold shadow-md transition-all">
+                        3
+                    </div>
+                    <span class="text-xs font-medium mt-1 text-gray-500">Cierre & Resumen</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== STEP 1: INICIO & VARIABLES ==================== -->
+        <section id="step1" class="space-y-6">
+            <!-- Dynamic Variables Setup Card -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold text-bsol-purple flex items-center mb-4">
+                    <i class="fa-solid fa-sliders mr-2 text-bsol-orange"></i> 1. Datos de la Llamada y Variables
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre del Encuestador(a)</label>
+                        <input type="text" id="varEncuestador" value="Ana María López" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsol-purple focus:outline-none text-sm" placeholder="Ej: Juan Pérez" oninput="updateScriptText()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre del Cliente</label>
+                        <input type="text" id="varCliente" value="Carlos Eduardo Mendoza" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsol-purple focus:outline-none text-sm" placeholder="Ej: Maria Gutierrez" oninput="updateScriptText()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nombre del Asesor de Negocios</label>
+                        <input type="text" id="varAsesor" value="Roberto Mamani" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bsol-purple focus:outline-none text-sm" placeholder="Ej: Gonzalo Vargas" oninput="updateScriptText()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Telephony Script Display -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-l-4 border-bsol-orange">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs uppercase font-extrabold tracking-wider bg-orange-100 text-bsol-orange px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-phone-volume mr-1"></i> Script de Inicio Telefono
+                    </span>
+                    <span class="text-xs text-gray-400">Lea el diálogo textualmente</span>
+                </div>
+                
+                <!-- Live Dialogue Box -->
+                <div class="bg-orange-50/50 p-4 rounded-xl border border-orange-100 text-gray-800 space-y-3 leading-relaxed text-sm md:text-base">
+                    <p>
+                        "Buenos <span id="timeGreeting" class="font-bold text-bsol-purple">días</span>, ¿hablo con el/la señor(a) <strong id="lblCliente" class="text-bsol-purple font-extrabold">Carlos Eduardo Mendoza</strong>?"
+                    </p>
+                    <p>
+                        "Le saluda <strong id="lblEncuestador" class="text-bsol-purple font-extrabold">Ana María López</strong> de <strong class="text-bsol-purple">BancoSol</strong>. Le llamo porque recientemente recibió un crédito con nosotros y fue atendido(a) por su asesor(a) de negocios, <strong id="lblAsesor" class="text-bsol-purple font-extrabold">Roberto Mamani</strong>."
+                    </p>
+                    <p>
+                        "Queremos saber cómo fue su experiencia para seguir mejorando. Son solo 6 preguntas, tomará unos 3 minutos. No le vamos a pedir claves, códigos ni dinero. ¿Tiene un momento para ayudarnos?"
+                    </p>
+                </div>
+
+                <!-- Call Action Buttons -->
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <button onclick="handleCallStatus('accept')" class="btn-grad text-white font-bold py-3 px-4 rounded-xl shadow flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Acepta Participar</span>
+                    </button>
+                    
+                    <button onclick="handleCallStatus('busy')" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Está Ocupado(a)</span>
+                    </button>
+
+                    <button onclick="handleCallStatus('doubts')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Duda de la Llamada</span>
+                    </button>
+
+                    <button onclick="handleCallStatus('refuse')" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow">
+                        <i class="fa-solid fa-user-xmark"></i>
+                        <span>No Desea Participar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Alternative Script Panel (Appears when clicking status buttons) -->
+            <div id="alternativeScriptBox" class="hidden bg-gray-800 text-white p-6 rounded-2xl shadow-lg transition-all duration-300">
+                <!-- Content injected dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- ==================== STEP 2: CUESTIONARIO DE ENCUESTA ==================== -->
+        <section id="step2" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-bsol-purple">Encuesta Post Desembolso</h2>
+                    <p class="text-xs text-gray-500">Responda las 6 preguntas según la retroalimentación directa del cliente.</p>
+                </div>
+                <span class="bg-purple-100 text-bsol-purple text-xs font-bold px-3 py-1 rounded-full">6 Preguntas</span>
+            </div>
+
+            <!-- PREGUNTA 1: NPS (0-10) -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-2">
+                    1. En una escala de 0 a 10, donde 0 significa "nada probable" y 10 "muy probable", ¿qué tan probable es que recomiende a un familiar o amigo la atención que recibió de su Asesor(a) de Negocios <strong class="lblAsesorName text-bsol-purple"></strong>?
+                </label>
+                
+                <!-- NPS Grid Buttons -->
+                <div class="grid grid-cols-11 gap-1 md:gap-2 my-4">
+                    <script>
+                        for(let i=0; i<=10; i++) {
+                            let type = i <= 6 ? 'detractor' : (i <= 8 ? 'passive' : 'promoter');
+                            document.write(`
+                                <button type="button" onclick="selectNPS(${i})" id="nps-${i}" 
+                                    class="nps-btn ${type} border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl text-center text-sm md:text-base hover:shadow">
+                                    ${i}
+                                </button>
+                            `);
+                        }
+                    </script>
+                </div>
+
+                <!-- NPS Scale Legend -->
+                <div class="flex justify-between text-xs text-gray-500 font-medium px-1">
+                    <span class="text-red-500"><i class="fa-solid fa-face-frown mr-1"></i> 0-6 Detractor</span>
+                    <span class="text-amber-500"><i class="fa-solid fa-face-meh mr-1"></i> 7-8 Pasivo</span>
+                    <span class="text-emerald-500"><i class="fa-solid fa-face-smile mr-1"></i> 9-10 Promotor</span>
+                </div>
+                <div id="npsBadge" class="mt-3 text-center hidden">
+                    <span id="npsBadgeText" class="text-xs font-bold px-3 py-1 rounded-full"></span>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 2: Motivo de la Calificación -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-3">
+                    2. ¿Cuál fue el principal motivo de la calificación que nos acaba de dar?
+                </label>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Amabilidad y trato recibido" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Amabilidad y trato recibido</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Claridad de la información" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Claridad de la información</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Rapidez del proceso" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Rapidez del proceso</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Solución o respuesta a sus necesidades" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Solución o respuesta a sus necesidades</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Seguimiento y acompañamiento" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Seguimiento y acompañamiento</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="q2Motivo" value="Otro" class="w-4 h-4 text-bsol-purple" onchange="toggleQ2Otro()">
+                        <span class="text-sm text-gray-700">Otro</span>
+                    </label>
+                </div>
+                <input type="text" id="q2OtroTxt" class="hidden mt-3 w-full p-2.5 border border-gray-300 rounded-lg text-sm" placeholder="Especifique el otro motivo...">
+            </div>
+
+            <!-- PREGUNTA 3: Monto Desembolsado -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-3">
+                    3. Respecto al desembolso de su crédito, ¿recibió el monto total que le fue aprobado?
+                </label>
+                <div class="flex items-center space-x-6">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q3Monto" value="Sí" onchange="toggleMontoAlert()" class="w-5 h-5 text-bsol-purple focus:ring-bsol-purple">
+                        <span class="font-bold text-gray-700">Sí</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q3Monto" value="No" onchange="toggleMontoAlert()" class="w-5 h-5 text-red-600 focus:ring-red-500">
+                        <span class="font-bold text-red-600">No</span>
+                    </label>
+                </div>
+
+                <input type="text" id="q3DetalleTxt" class="hidden mt-3 w-full p-2.5 border border-gray-300 rounded-lg text-sm" placeholder="Detalle por qué no recibió el total...">
+
+                <!-- Dynamic Warning if "NO" -->
+                <div id="montoAlertBox" class="hidden mt-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-xl text-red-700 text-xs md:text-sm">
+                    <p class="font-bold flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation mr-2 text-red-600"></i> Alerta de Seguimiento
+                    </p>
+                    <p class="mt-1">El caso será derivado automáticamente para seguimiento interno en el cierre.</p>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 4: Transparencia / Pagos -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-3">
+                    4. Nos interesa conocer cómo se desarrollo el trámite de su crédito, ¿Realizó algún pago, regalo o dinero relacionado con la gestión de su crédito?
+                </label>
+                <div class="flex items-center space-x-6">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q4Pagos" value="Sí" onchange="toggleQ4Alert()" class="w-5 h-5 text-red-600 focus:ring-red-500">
+                        <span class="text-sm font-bold text-red-600">Sí</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q4Pagos" value="No" onchange="toggleQ4Alert()" class="w-5 h-5 text-bsol-purple focus:ring-bsol-purple">
+                        <span class="text-sm font-medium text-gray-700">No</span>
+                    </label>
+                </div>
+                
+                <!-- Alerta Crítica (Aparece si es SÍ) -->
+                <div id="q4AlertBox" class="hidden mt-4">
+                    <div class="bg-red-600 text-white font-bold p-3 rounded-t-xl text-sm flex items-start shadow-md">
+                        <i class="fa-solid fa-triangle-exclamation mr-2 mt-1 text-lg"></i>
+                        <span>ALERTA CRÍTICA: Cliente reportó un pago/regalo. Por favor, registre el detalle exacto de lo ocurrido.</span>
+                    </div>
+                    <textarea id="q4DetalleTxt" rows="2" class="w-full p-3 border-x-2 border-b-2 border-red-600 rounded-b-xl focus:ring-0 focus:outline-none text-sm bg-red-50 text-red-900" placeholder="Escriba aquí todo el detalle de lo ocurrido con el pago o regalo..."></textarea>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 5: Canal de Contacto del Asesor -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-3">
+                    5. Nos interesa conocer como nuestro Asesor(a) de Negocios <strong class="lblAsesorName text-bsol-purple"></strong> llegó a contactar a su persona:
+                </label>
+                <div class="space-y-2.5">
+                    <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer">
+                        <input type="radio" name="q5Canal" value="a. Visitó su Negocio." onchange="toggleQ5Otro()" class="w-4 h-4 text-bsol-purple">
+                        <span class="text-sm text-gray-700">a. Visitó su Negocio.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer">
+                        <input type="radio" name="q5Canal" value="b. Lo llamó por teléfono." onchange="toggleQ5Otro()" class="w-4 h-4 text-bsol-purple">
+                        <span class="text-sm text-gray-700">b. Lo llamó por teléfono.</span>
+                    </label>
+                    <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer">
+                        <input type="radio" name="q5Canal" value="c. Otro." onchange="toggleQ5Otro()" class="w-4 h-4 text-bsol-purple">
+                        <span class="text-sm text-gray-700">c. Otro.</span>
+                    </label>
+                    <input type="text" id="q5OtroTxt" class="hidden ml-8 w-[calc(100%-2rem)] p-2.5 border border-gray-300 rounded-lg text-sm mb-2" placeholder="Especifique el otro medio de contacto...">
+
+                    <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition cursor-pointer">
+                        <input type="radio" name="q5Canal" value="d. ¿Tiene algún vínculo con él/ella?" onchange="toggleQ5Otro()" class="w-4 h-4 text-bsol-purple">
+                        <span class="text-sm text-gray-700">d. ¿Tiene algún vínculo con él/ella?</span>
+                    </label>
+
+                    <!-- Sub-menú Vínculo (Hidden by default) -->
+                    <div id="q5VinculoSubmenu" class="hidden ml-8 mt-1 p-3 bg-purple-50/50 border border-purple-100 rounded-xl space-y-2">
+                        <p class="text-xs font-bold text-bsol-purple mb-2 uppercase">Seleccione el tipo de vínculo:</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q5VinculoTipo" value="Familiar" onchange="toggleQ5Vinculo()" class="w-4 h-4 text-bsol-purple"> <span class="text-sm text-gray-700">Familiar</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q5VinculoTipo" value="Personal" onchange="toggleQ5Vinculo()" class="w-4 h-4 text-bsol-purple"> <span class="text-sm text-gray-700">Personal</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q5VinculoTipo" value="Comercial" onchange="toggleQ5Vinculo()" class="w-4 h-4 text-bsol-purple"> <span class="text-sm text-gray-700">Comercial</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q5VinculoTipo" value="Económica" onchange="toggleQ5Vinculo()" class="w-4 h-4 text-bsol-purple"> <span class="text-sm text-gray-700">Económica</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer sm:col-span-2">
+                                <input type="radio" name="q5VinculoTipo" value="Otra. ¿Cuál?" onchange="toggleQ5Vinculo()" class="w-4 h-4 text-bsol-purple"> <span class="text-sm text-gray-700">Otra. ¿Cuál?</span>
+                            </label>
+                        </div>
+                        <input type="text" id="q5VinculoOtroTxt" class="hidden w-full p-2.5 border border-gray-300 rounded-lg text-sm mt-2" placeholder="Especifique el otro tipo de vínculo...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREGUNTA 6: Comentarios Finales -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border-t-4 border-bsol-purple">
+                <label class="block text-sm font-extrabold text-gray-800 mb-2">
+                    6. Para finalizar, ¿hay algún otro comentario que quiera compartir sobre la atención que recibió de <strong class="lblAsesorName text-bsol-purple"></strong> durante la gestión de su crédito?
+                </label>
+                <div class="flex items-center space-x-6 mb-3">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q6ComentariosOpcion" value="Sí" onchange="toggleQ6Detalle()" class="w-5 h-5 text-bsol-purple focus:ring-bsol-purple">
+                        <span class="font-bold text-gray-700">Sí</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="radio" name="q6ComentariosOpcion" value="No" onchange="toggleQ6Detalle()" class="w-5 h-5 text-gray-500 focus:ring-gray-400">
+                        <span class="font-bold text-gray-700">No</span>
+                    </label>
+                </div>
+                <textarea id="q6Comentarios" rows="3" class="hidden w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-bsol-purple focus:outline-none text-sm" placeholder="Escriba los comentarios adicionales expresados por el cliente..."></textarea>
+            </div>
+
+            <!-- Bottom Navigation Bar for Questionnaire -->
+            <div class="flex justify-between items-center pt-4">
+                <button onclick="goToStep(1)" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-xl transition flex items-center">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Volver a Datos
+                </button>
+                <button onclick="finishSurvey()" class="btn-grad text-white font-extrabold py-3 px-8 rounded-xl shadow-lg flex items-center">
+                    <span>Finalizar y Ver Cierre</span>
+                    <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 3: SCRIPT DE CIERRE & RESUMEN ==================== -->
+        <section id="step3" class="hidden space-y-6">
+            <!-- Dynamic Closing Dialogue Box -->
+            <div id="closingScriptCard" class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-bsol-orange">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs uppercase font-extrabold tracking-wider bg-purple-100 text-bsol-purple px-3 py-1 rounded-full">
+                        <i class="fa-solid fa-comment-dots mr-1"></i> Script de Cierre Oficial
+                    </span>
+                    <span class="text-xs text-gray-400">Lea la despedida según corresponda</span>
+                </div>
+                
+                <div id="closingText" class="bg-purple-50 p-5 rounded-xl border border-purple-100 text-gray-800 text-base leading-relaxed">
+                    <!-- Dynamic text inserted via JS -->
+                </div>
+            </div>
+
+            <!-- Full Survey Summary Card -->
+            <div class="bg-white rounded-2xl p-6 shadow-md border border-gray-100 space-y-4">
+                <div class="flex justify-between items-center border-b pb-3">
+                    <h3 class="text-lg font-bold text-bsol-purple">
+                        <i class="fa-solid fa-file-invoice mr-2 text-bsol-orange"></i> Resumen de la Encuesta Registrada
+                    </h3>
+                    <span id="summaryStatus" class="px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-100 text-emerald-700">COMPLETADA</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Cliente</p>
+                        <p id="sumCliente" class="font-bold text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Asesor Evaluado</p>
+                        <p id="sumAsesor" class="font-bold text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Puntaje NPS (P1)</p>
+                        <p id="sumNps" class="font-bold text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Monto Completo (P3)</p>
+                        <p id="sumMonto" class="font-bold text-gray-800">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Motivo Calificación (P2)</p>
+                        <p id="sumMotivo" class="text-gray-700 italic">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Pagos o Regalos (P4)</p>
+                        <p id="sumPagos" class="font-semibold text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Canal de Contacto (P5)</p>
+                        <p id="sumCanal" class="font-semibold text-gray-800">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-gray-500 uppercase font-semibold">Comentarios Adicionales (P6)</p>
+                        <p id="sumComentarios" class="text-gray-700 italic">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons: Download / Reset -->
+            <div class="flex flex-wrap gap-3 justify-between items-center pt-2">
+                <button onclick="goToStep(2)" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-5 rounded-xl transition text-sm">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Modificar Respuestas
+                </button>
+
+                <div class="flex gap-3">
+                    <button onclick="saveAndReset()" class="btn-grad text-white font-bold py-3 px-8 rounded-xl shadow-lg transition text-base flex items-center">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i> Finalizar y Guardar
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 text-xs py-4 mt-8 border-t border-gray-800 text-center">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>© 2026 BancoSol S.A. | Sistema de Gestión de Satisfacción del Cliente Post Desembolso</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Global Application State
+        const state = {
+            encuestador: 'Ana María López',
+            cliente: 'Carlos Eduardo Mendoza',
+            asesor: 'Roberto Mamani',
+            npsScore: null,
+            motivo: '',
+            montoCompleto: 'Sí',
+            montoDetalle: '',
+            pagosRegalos: 'No',
+            pagosDetalle: '',
+            canalContacto: 'a. Visitó su Negocio.',
+            comentarios: '',
+            callOutcome: 'completed',
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        // Window Load Initializations
+        window.onload = function() {
+            setGreetingTime();
+            updateScriptText();
+        };
+
+        // Determine Time of Day Greeting
+        function setGreetingTime() {
+            const hour = new Date().getHours();
+            const timeSpan = document.getElementById('timeGreeting');
+            if (hour < 12) {
+                timeSpan.textContent = 'días';
+            } else {
+                timeSpan.textContent = 'tardes';
+            }
+        }
+
+        // Live Script Variable Updater
+        function updateScriptText() {
+            state.encuestador = document.getElementById('varEncuestador').value || '[SU NOMBRE]';
+            state.cliente = document.getElementById('varCliente').value || '[NOMBRE CLIENTE]';
+            state.asesor = document.getElementById('varAsesor').value || '[NOMBRE ASESOR]';
+
+            document.getElementById('lblEncuestador').textContent = state.encuestador;
+            document.getElementById('lblCliente').textContent = state.cliente;
+            document.getElementById('lblAsesor').textContent = state.asesor;
+            
+            // Update all elements requiring the Asesor's name (Q1, Q5, Q6)
+            document.querySelectorAll('.lblAsesorName').forEach(el => {
+                el.textContent = state.asesor;
+            });
+
+            document.getElementById('headerAgentName').textContent = `Operador: ${state.encuestador}`;
+        }
+
+        // Handle Initial Call Outcome Buttons
+        function handleCallStatus(status) {
+            const box = document.getElementById('alternativeScriptBox');
+            box.classList.remove('hidden');
+
+            if (status === 'accept') {
+                box.classList.add('hidden');
+                goToStep(2);
+            } else if (status === 'busy') {
+                box.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-amber-400 text-base mb-2"><i class="fa-solid fa-clock mr-2"></i> SI ESTÁ OCUPADO(A)</h4>
+                        <button onclick="closeAltBox()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p class="text-sm leading-relaxed mb-3">
+                        "Entiendo, no se preocupe. ¿A qué hora le quedaría mejor que lo/la llame?"
+                    </p>
+                    <div class="bg-gray-700 p-3 rounded-xl space-y-2 text-xs">
+                        <label class="block font-semibold text-gray-200">Registrar Fecha y Hora de Re-llamada:</label>
+                        <div class="flex gap-2">
+                            <input type="date" class="bg-gray-800 text-white p-2 rounded border border-gray-600 w-1/2">
+                            <input type="time" class="bg-gray-800 text-white p-2 rounded border border-gray-600 w-1/2">
+                        </div>
+                        <button onclick="saveCallback()" class="mt-2 bg-amber-500 hover:bg-amber-600 text-white font-bold py-1.5 px-4 rounded w-full">Guardar Agendamiento</button>
+                    </div>
+                `;
+            } else if (status === 'doubts') {
+                box.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-indigo-400 text-base mb-2"><i class="fa-solid fa-shield-halved mr-2"></i> SI DUDA QUE LA LLAMADA SEA DEL BANCO</h4>
+                        <button onclick="closeAltBox()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p class="text-sm leading-relaxed">
+                        "Es normal que quiera verificarlo. Puede comunicarse directamente con <strong>BancoSol</strong> a nuestra línea oficial y confirmar que estamos realizando esta encuesta. ¿Prefiere que lo/la llame en otro momento?"
+                    </p>
+                `;
+            } else if (status === 'refuse') {
+                state.callOutcome = 'refused';
+                box.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <h4 class="font-bold text-red-400 text-base mb-2"><i class="fa-solid fa-user-xmark mr-2"></i> SI NO DESEA PARTICIPAR</h4>
+                        <button onclick="closeAltBox()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <p class="text-sm leading-relaxed mb-3">
+                        "Entendido, respetamos su decisión. Gracias por su tiempo, <strong>${state.cliente}</strong>. Que tenga un buen día."
+                    </p>
+                    <button onclick="finishRefusedCall()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-1.5 px-4 rounded text-xs">Registrar como "No Desea Participar"</button>
+                `;
+            }
+        }
+
+        function closeAltBox() {
+            document.getElementById('alternativeScriptBox').classList.add('hidden');
+        }
+
+        function saveCallback() {
+            alert(`Llamada agendada exitosamente para ${state.cliente}.`);
+            closeAltBox();
+        }
+
+        function finishRefusedCall() {
+            closeAltBox();
+            state.npsScore = 'N/A';
+            state.motivo = 'No desea participar en la encuesta';
+            state.montoCompleto = 'N/A';
+            state.montoDetalle = '';
+            state.pagosRegalos = 'N/A';
+            state.pagosDetalle = '';
+            state.canalContacto = 'N/A';
+            state.comentarios = 'Cliente rechazó la llamada telefónica.';
+            
+            goToStep(3);
+        }
+
+        // NPS Button Selection Logic
+        function selectNPS(score) {
+            state.npsScore = score;
+            for(let i=0; i<=10; i++) {
+                const btn = document.getElementById(`nps-${i}`);
+                if (btn) btn.classList.remove('selected', 'ring-4', 'ring-purple-400');
+            }
+            
+            const selectedBtn = document.getElementById(`nps-${score}`);
+            if(selectedBtn) {
+                selectedBtn.classList.add('selected', 'ring-4', 'ring-purple-400');
+            }
+
+            const badge = document.getElementById('npsBadge');
+            const badgeText = document.getElementById('npsBadgeText');
+            badge.classList.remove('hidden');
+
+            if (score <= 6) {
+                badgeText.className = 'text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-700';
+                badgeText.textContent = `Calificación: ${score} - DETRACTOR`;
+            } else if (score <= 8) {
+                badgeText.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700';
+                badgeText.textContent = `Calificación: ${score} - PASIVO`;
+            } else {
+                badgeText.className = 'text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+                badgeText.textContent = `Calificación: ${score} - PROMOTOR`;
+            }
+        }
+
+        // Toggle Q2 Otro
+        function toggleQ2Otro() {
+            const selected = document.querySelector('input[name="q2Motivo"]:checked')?.value;
+            const txt = document.getElementById('q2OtroTxt');
+            if (selected === 'Otro') {
+                txt.classList.remove('hidden');
+            } else {
+                txt.classList.add('hidden');
+            }
+        }
+
+        // Toggle Q3 Monto Alert
+        function toggleMontoAlert() {
+            const selected = document.querySelector('input[name="q3Monto"]:checked')?.value;
+            const alertBox = document.getElementById('montoAlertBox');
+            const txt = document.getElementById('q3DetalleTxt');
+            if (selected === 'No') {
+                alertBox.classList.remove('hidden');
+                txt.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+                txt.classList.add('hidden');
+            }
+        }
+
+        // Toggle Q4 Pagos Alert (Critical)
+        function toggleQ4Alert() {
+            const selected = document.querySelector('input[name="q4Pagos"]:checked')?.value;
+            const alertBox = document.getElementById('q4AlertBox');
+            if (selected === 'Sí') {
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        // Toggle Q5 Canal (Otro y Vínculo Submenu)
+        function toggleQ5Otro() {
+            const selected = document.querySelector('input[name="q5Canal"]:checked')?.value;
+            const txtOtro = document.getElementById('q5OtroTxt');
+            const subMenuVinculo = document.getElementById('q5VinculoSubmenu');
+            
+            // Handle 'c. Otro.'
+            if (selected === 'c. Otro.') {
+                txtOtro.classList.remove('hidden');
+            } else {
+                txtOtro.classList.add('hidden');
+            }
+
+            // Handle 'd. Vínculo' submenu
+            if (selected === 'd. ¿Tiene algún vínculo con él/ella?') {
+                subMenuVinculo.classList.remove('hidden');
+            } else {
+                subMenuVinculo.classList.add('hidden');
+                // clear sub-options if hidden
+                document.querySelectorAll('input[name="q5VinculoTipo"]').forEach(r => r.checked = false);
+                document.getElementById('q5VinculoOtroTxt').classList.add('hidden');
+            }
+        }
+
+        // Toggle Q5 Submenu 'Otra. ¿Cuál?'
+        function toggleQ5Vinculo() {
+            const selected = document.querySelector('input[name="q5VinculoTipo"]:checked')?.value;
+            const txt = document.getElementById('q5VinculoOtroTxt');
+            if (selected === 'Otra. ¿Cuál?') {
+                txt.classList.remove('hidden');
+            } else {
+                txt.classList.add('hidden');
+            }
+        }
+
+        // Toggle Q6 Detalle
+        function toggleQ6Detalle() {
+            const selected = document.querySelector('input[name="q6ComentariosOpcion"]:checked')?.value;
+            const txt = document.getElementById('q6Comentarios');
+            if (selected === 'Sí') {
+                txt.classList.remove('hidden');
+            } else {
+                txt.classList.add('hidden');
+            }
+        }
+
+        // Navigation between steps
+        function goToStep(stepNumber) {
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+
+            const line = document.getElementById('progressLine');
+            const c1 = document.getElementById('stepCircle1').children[0];
+            const c2 = document.getElementById('stepCircle2').children[0];
+            const c3 = document.getElementById('stepCircle3').children[0];
+
+            if (stepNumber === 1) {
+                document.getElementById('step1').classList.remove('hidden');
+                line.style.width = '0%';
+                c1.className = 'w-10 h-10 rounded-full bg-bsol-purple text-white flex items-center justify-center font-bold shadow-md';
+                c2.className = 'w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold shadow-md';
+                c3.className = 'w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold shadow-md';
+            } else if (stepNumber === 2) {
+                document.getElementById('step2').classList.remove('hidden');
+                line.style.width = '50%';
+                c1.className = 'w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold shadow-md';
+                c2.className = 'w-10 h-10 rounded-full bg-bsol-purple text-white flex items-center justify-center font-bold shadow-md';
+                c3.className = 'w-10 h-10 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center font-bold shadow-md';
+            } else if (stepNumber === 3) {
+                document.getElementById('step3').classList.remove('hidden');
+                line.style.width = '100%';
+                c1.className = 'w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold shadow-md';
+                c2.className = 'w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold shadow-md';
+                c3.className = 'w-10 h-10 rounded-full bg-bsol-purple text-white flex items-center justify-center font-bold shadow-md';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Finish questionnaire and generate Step 3
+        function finishSurvey() {
+            if (state.npsScore === null && state.callOutcome !== 'refused') {
+                alert('Por favor seleccione una calificación en la Pregunta 1 (NPS 0-10) antes de continuar.');
+                return;
+            }
+
+            // Q2
+            const q2Obj = document.querySelector('input[name="q2Motivo"]:checked');
+            state.motivo = q2Obj ? q2Obj.value : 'No indicado';
+            if(state.motivo === 'Otro') {
+                state.motivo = document.getElementById('q2OtroTxt').value || 'Otro';
+            }
+            
+            // Q3
+            const q3Obj = document.querySelector('input[name="q3Monto"]:checked');
+            state.montoCompleto = q3Obj ? q3Obj.value : 'Sí';
+            state.montoDetalle = state.montoCompleto === 'No' ? document.getElementById('q3DetalleTxt').value : '';
+
+            // Q4
+            const q4Obj = document.querySelector('input[name="q4Pagos"]:checked');
+            state.pagosRegalos = q4Obj ? q4Obj.value : 'No';
+            state.pagosDetalle = state.pagosRegalos === 'Sí' ? document.getElementById('q4DetalleTxt').value : '';
+
+            // Q5
+            const q5Obj = document.querySelector('input[name="q5Canal"]:checked');
+            state.canalContacto = q5Obj ? q5Obj.value : 'a. Visitó su Negocio.';
+            if(state.canalContacto === 'c. Otro.') {
+                state.canalContacto = 'Otro: ' + document.getElementById('q5OtroTxt').value;
+            } else if (state.canalContacto === 'd. ¿Tiene algún vínculo con él/ella?') {
+                const subTipo = document.querySelector('input[name="q5VinculoTipo"]:checked');
+                let vinculoVal = subTipo ? subTipo.value : 'No especificado';
+                if (vinculoVal === 'Otra. ¿Cuál?') {
+                    vinculoVal = document.getElementById('q5VinculoOtroTxt').value || 'Otra';
+                }
+                state.canalContacto = `Vínculo: ${vinculoVal}`;
+            }
+
+            // Q6
+            const q6Obj = document.querySelector('input[name="q6ComentariosOpcion"]:checked');
+            if (q6Obj && q6Obj.value === 'Sí') {
+                state.comentarios = document.getElementById('q6Comentarios').value || 'Sin observaciones finales';
+            } else {
+                state.comentarios = 'No hubo comentarios';
+            }
+
+            // Populate Summary
+            document.getElementById('sumCliente').textContent = state.cliente;
+            document.getElementById('sumAsesor').textContent = state.asesor;
+            document.getElementById('sumNps').textContent = state.npsScore !== null ? `${state.npsScore} / 10` : 'N/A';
+            document.getElementById('sumMonto').textContent = state.montoCompleto === 'Sí' ? 'SÍ (Recibió el total)' : `NO (${state.montoDetalle})`;
+            document.getElementById('sumMotivo').textContent = state.motivo;
+            document.getElementById('sumPagos').textContent = state.pagosRegalos === 'Sí' ? `SÍ (ALERTA: ${state.pagosDetalle})` : 'NO (Sin cobros/regalos)';
+            document.getElementById('sumCanal').textContent = state.canalContacto;
+            document.getElementById('sumComentarios').textContent = state.comentarios;
+
+            // Generate Dynamic Closing Script
+            const closingBox = document.getElementById('closingText');
+            const greeting = new Date().getHours() < 12 ? 'día' : 'tarde';
+
+            // TRIGGER AUTOMATIC PROBLEMA SCRIPT
+            if (state.montoCompleto === 'No' || state.pagosRegalos === 'Sí') {
+                closingBox.innerHTML = `
+                    <div class="border-l-4 border-amber-500 pl-3 py-1 mb-2">
+                        <span class="text-xs font-bold text-amber-700 uppercase">Script de Despedida con Derivación (Problema Reportado)</span>
+                    </div>
+                    <p class="mb-2">
+                        "Gracias por contarnos eso, <strong>${state.cliente}</strong>. Lo registraremos y lo derivaremos al área correspondiente para que se le dé seguimiento."
+                    </p>
+                    <p>
+                        "Agradecemos mucho su confianza. Que tenga un excelente ${greeting}."
+                    </p>
+                `;
+                document.getElementById('summaryStatus').className = "px-3 py-1 text-xs font-extrabold rounded-full bg-red-100 text-red-800";
+                document.getElementById('summaryStatus').innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> REQUIERE DERIVACIÓN URGENTE';
+            } else {
+                closingBox.innerHTML = `
+                    <div class="border-l-4 border-emerald-500 pl-3 py-1 mb-2">
+                        <span class="text-xs font-bold text-emerald-700 uppercase">Script de Despedida Estándar</span>
+                    </div>
+                    <p class="mb-2">
+                        "Con esto terminamos, <strong>${state.cliente}</strong>. Muchas gracias por su tiempo y por sus respuestas; nos ayudan a mejorar la atención en <strong>BancoSol</strong>."
+                    </p>
+                    <p>
+                        "Que tenga un excelente ${greeting}."
+                    </p>
+                `;
+                document.getElementById('summaryStatus').className = "px-3 py-1 text-xs font-extrabold rounded-full bg-emerald-100 text-emerald-700";
+                document.getElementById('summaryStatus').innerHTML = '<i class="fa-solid fa-check mr-1"></i> COMPLETADA CON ÉXITO';
+            }
+
+            goToStep(3);
+        }
+
+        // Save, show alert and reset
+        function saveAndReset() {
+            alert('¡Encuesta Finalizada y Guardada exitosamente!');
+            resetForm();
+        }
+
+        // Export data as CSV
+        function exportCSV() {
+            const headers = ["Fecha", "Encuestador", "Cliente", "Asesor", "NPS_P1", "Motivo_P2", "MontoTotal_P3", "DetalleMonto", "PagosRegalos_P4", "DetallePagos", "CanalContacto_P5", "Comentarios_P6"];
+            const row = [
+                `"${state.date}"`,
+                `"${state.encuestador}"`,
+                `"${state.cliente}"`,
+                `"${state.asesor}"`,
+                `"${state.npsScore}"`,
+                `"${state.motivo.replace(/"/g, '""')}"`,
+                `"${state.montoCompleto}"`,
+                `"${state.montoDetalle.replace(/"/g, '""')}"`,
+                `"${state.pagosRegalos}"`,
+                `"${state.pagosDetalle.replace(/"/g, '""')}"`,
+                `"${state.canalContacto.replace(/"/g, '""')}"`,
+                `"${state.comentarios.replace(/"/g, '""')}"`
+            ];
+
+            const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + row.join(",");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Encuesta_BancoSol_${state.cliente.replace(/\s+/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        // Reset to perform a new survey
+        function resetForm() {
+            state.npsScore = null;
+            state.motivo = '';
+            state.montoCompleto = 'Sí';
+            state.montoDetalle = '';
+            state.pagosRegalos = 'No';
+            state.pagosDetalle = '';
+            state.canalContacto = 'a. Visitó su Negocio.';
+            state.comentarios = '';
+            state.callOutcome = 'completed';
+
+            // Hide text areas & submenus
+            document.getElementById('q2OtroTxt').value = '';
+            document.getElementById('q2OtroTxt').classList.add('hidden');
+            
+            document.getElementById('q3DetalleTxt').value = '';
+            document.getElementById('q3DetalleTxt').classList.add('hidden');
+            document.getElementById('montoAlertBox').classList.add('hidden');
+            
+            document.getElementById('q4DetalleTxt').value = '';
+            document.getElementById('q4AlertBox').classList.add('hidden');
+            
+            document.getElementById('q5OtroTxt').value = '';
+            document.getElementById('q5OtroTxt').classList.add('hidden');
+            document.getElementById('q5VinculoSubmenu').classList.add('hidden');
+            document.getElementById('q5VinculoOtroTxt').value = '';
+            document.getElementById('q5VinculoOtroTxt').classList.add('hidden');
+            
+            document.getElementById('q6Comentarios').value = '';
+            document.getElementById('q6Comentarios').classList.add('hidden');
+            
+            document.getElementById('npsBadge').classList.add('hidden');
+            
+            // Uncheck radios
+            document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+            
+            // Clear NPS selections
+            for(let i=0; i<=10; i++) {
+                const btn = document.getElementById(`nps-${i}`);
+                if (btn) btn.classList.remove('selected', 'ring-4', 'ring-purple-400');
+            }
+
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
